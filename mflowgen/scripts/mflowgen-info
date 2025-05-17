@@ -483,7 +483,10 @@ def main():
 
     if key in data.keys():
 
-      p_width      = max( [ len(p) for p in data[key] ] )
+      if data[key] != {}:
+        p_width      = max( [ len(p) for p in data[key] ] )
+      else:
+        p_width      = 0
       template_str ='- {:' + str(p_width) + '} : {}'
 
       title = key.capitalize()

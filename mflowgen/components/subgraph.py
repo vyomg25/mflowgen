@@ -18,7 +18,7 @@ from mflowgen.core.run import RunHandler as rh
 
 class Subgraph(Step):
 
-  def __init__( s, graph_path, design_name ):
+  def __init__( s, graph_path, design_name, **kwargs):
 
     # Get the construct.py file path
 
@@ -50,7 +50,7 @@ class Subgraph(Step):
       sys.exit( 1 )
 
     # Construct the graph
-    s._graph = subgraph_construct_mod.construct()
+    s._graph = subgraph_construct_mod.construct(**kwargs)
 
     # Extract the graph's arg names and defaults so we can
     # make them parameters of the Step
@@ -63,15 +63,20 @@ class Subgraph(Step):
         default == 'undefined'
       step_param_dict[name] = default
 
+    # Override construct() args with kwargs
+    kwargs_cmd = []
+    for key, value in kwargs.items():
+        kwargs_cmd.append(f"export {key}={value}")
+
     # Generate run command that passes graph arg for each param
-    run_cmd = f"mflowgen run --subgraph --design {construct_path} --graph-kwargs {{{{"
+    run_cmd = f"mflowgen run --subgraph --design {construct_path} --graph-kwargs {{{{\""
     for param in step_param_dict:
-      run_cmd += f"{param}:${param},"
+      run_cmd += f"'{param}':'${param}',"
     # Replace last comma with close bracket for kwarg dict
     if run_cmd[-1] == ',':
       run_cmd = run_cmd[:-1]
 
-    run_cmd += '}}'
+    run_cmd += '\"}}'
 
 
     # Generate step data
@@ -81,6 +86,7 @@ class Subgraph(Step):
     data['inputs'] = s._graph.all_inputs()
     data['outputs'] = s._graph.all_outputs()
     data['commands'] = [ \
+      "\n".join(kwargs_cmd),
       run_cmd,
       'make outputs',
       'mkdir -p outputs',
@@ -105,4 +111,3 @@ class Subgraph(Step):
   # Returns underlying graph object used to create Subgraph Step.
   def get_graph( s ):
     return s._graph
-

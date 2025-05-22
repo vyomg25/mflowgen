@@ -88,7 +88,7 @@ class Subgraph(Step):
     data['commands'] = [ \
       "\n".join(kwargs_cmd),
       run_cmd,
-      'make outputs',
+      'make -j outputs',
       'mkdir -p outputs',
       'cd outputs',
       'output_dir=$(find ../ -type d -regex "^../[0-9]+-outputs/outputs")'
